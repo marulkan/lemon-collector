@@ -3,6 +3,8 @@ Data that will be presented to lemonbar
 
 # Warning not even remotely close to being usable!
 
+Lots of hardcoded stuff still but it shows something...
+
 Usage:
 python main.py | lemonbar -p
 
@@ -35,4 +37,5 @@ objectA
 and some object specific stuff like
     weather_site, weather_username, ...
     email_address, email_username, email_password
+
 
