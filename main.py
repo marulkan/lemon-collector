@@ -4,6 +4,7 @@ import sys
 #import psutil
 import asyncio
 import subprocess
+import configparser
 
 # List of lists, list of elements,
 # if right, left or center
@@ -12,12 +13,6 @@ import subprocess
 # shown_objects = {pacages:['r', '0', 'data as a string'],
 #                  date:['c', '0', 'data as a string']}
 shown_objects = {}
-
-# Color template for now:
-focus_color = '%{Fred}'
-unfocus_color = '%{Fblue}'
-unfocus2_color = '%{Fwhite}'
-eof_color = '%{F-}'
 
 def showing_objects(loop):
     current_objects = shown_objects.copy()
@@ -53,10 +48,10 @@ def formating(obj, orientation='l', order=0):
     return [orientation, order, obj]
 
 def coloring(obj, fg_color):
-    ret = fg_color + obj + eof_color
+    ret = '%{F' + fg_color + '}' + obj + '%{F-}'
     return ret
 
-def display_bspwm(loop):
+def display_bspwm(config, loop):
     bsp_event = subprocess.check_output(["bspc", "control", "--get-status"], universal_newlines=True).strip()
     bsp_events = bsp_event.split(':')
     # First part is not used for anything fun so lets remove it.
@@ -70,37 +65,52 @@ def display_bspwm(loop):
         # O is the focused desktop with open windows.
         # F is the focused desktop without open windows.
         if i.startswith('o'):
-            bsp_tabs.append(coloring(i[1:], unfocus_color))
+            bsp_tabs.append(coloring(i[1:], config['unfocus_color'].rstrip()))
         elif i.startswith('O') or i.startswith('F'):
-            bsp_tabs.append(coloring(i[1:], focus_color))
+            bsp_tabs.append(coloring(i[1:], config['focus_color'].rstrip()))
         else:
             pass
             #print('slask')
     bsp_string = ' '.join(bsp_tabs)
-    shown_objects['bspwm'] = formating(bsp_string, 'c')
-    loop.call_later(1, display_bspwm, loop)
+    shown_objects['bspwm'] = formating(bsp_string, config['alignment'], config['priority'])
+    loop.call_later(1, display_bspwm, config, loop)
 
 
-def display_date(loop):
-    shown_objects['date'] = formating(str(datetime.datetime.now()), 'r', 0)
-    loop.call_later(1, display_date, loop)
+def display_date(config, loop):
+    shown_objects['date'] = formating(str(datetime.datetime.now()), config['alignment'], config['priority'])
+    loop.call_later(1, display_date, config, loop)
 
-def display_packages(loop):
+def display_packages(config, loop):
     p1 = subprocess.Popen(["pacman", "-Qu"], stdout=subprocess.PIPE)
     p2 = subprocess.Popen(["wc", "-l"], stdin=p1.stdout, stdout=subprocess.PIPE)
     p1.stdout.close()
     output = p2.communicate()[0]
-    shown_objects['packages'] = formating(output.decode("utf-8").strip(), 'l', 1)
-    loop.call_later(120, display_packages, loop)
+    shown_objects['packages'] = formating(output.decode("utf-8").strip(), config['alignment'], config['priority'])
+    loop.call_later(120, display_packages, config, loop)
 
-loop = asyncio.get_event_loop()
+def main():
+    config = configparser.ConfigParser()
+    config.read('lemon-collector.conf')
+    loop = asyncio.get_event_loop()
+    # Just so we only get sane input from the configuration file.
+    function_mapping = {
+            'bspwm' : display_bspwm,
+            'date'  : display_date,
+            'pacman': display_packages,
+    }
+    # Figuring out which modules to load.
+    enabledmod = config['general']['enabled_modules'].split()
+    for i in enabledmod:
+        try:
+            loop.call_soon(function_mapping[i], config[i], loop)
+        except KeyError:
+            print(i, 'is not propperly mapped.')
 
-# Schedule the first call to display_date()
-loop.call_soon(display_date, loop)
-loop.call_soon(display_packages, loop)
-loop.call_soon(display_bspwm, loop)
-loop.call_soon(showing_objects, loop)
+    loop.call_soon(showing_objects, loop)
 
-# Blocking call interrupted by loop.stop()
-loop.run_forever()
-loop.close()
+    # Blocking call interrupted by loop.stop()
+    loop.run_forever()
+    loop.close()
+
+if __name__ == '__main__':
+    main()
