@@ -65,9 +65,9 @@ def display_bspwm(config, loop):
         # O is the focused desktop with open windows.
         # F is the focused desktop without open windows.
         if i.startswith('o'):
-            bsp_tabs.append(coloring(i[1:], config['unfocus_color'].rstrip()))
+            bsp_tabs.append(coloring(i[1:], config['unfocus_fg_color'].rstrip()))
         elif i.startswith('O') or i.startswith('F'):
-            bsp_tabs.append(coloring(i[1:], config['focus_color'].rstrip()))
+            bsp_tabs.append(coloring(i[1:], config['focus_fg_color'].rstrip()))
         else:
             pass
             #print('slask')
@@ -75,9 +75,8 @@ def display_bspwm(config, loop):
     shown_objects['bspwm'] = formating(bsp_string, config['alignment'], config['priority'])
     loop.call_later(1, display_bspwm, config, loop)
 
-
 def display_date(config, loop):
-    shown_objects['date'] = formating(str(datetime.datetime.now()), config['alignment'], config['priority'])
+    shown_objects['date'] = formating(config['string'] + ' ' + str(datetime.datetime.strftime(datetime.datetime.now(), config.get('parsing', raw=True))), config['alignment'], config['priority'])
     loop.call_later(1, display_date, config, loop)
 
 def display_packages(config, loop):
@@ -85,7 +84,7 @@ def display_packages(config, loop):
     p2 = subprocess.Popen(["wc", "-l"], stdin=p1.stdout, stdout=subprocess.PIPE)
     p1.stdout.close()
     output = p2.communicate()[0]
-    shown_objects['packages'] = formating(output.decode("utf-8").strip(), config['alignment'], config['priority'])
+    shown_objects['packages'] = formating(config['string'] + ' ' + output.decode("utf-8").strip(), config['alignment'], config['priority'])
     loop.call_later(120, display_packages, config, loop)
 
 def main():

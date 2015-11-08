@@ -3,10 +3,13 @@ Data that will be presented to lemonbar
 
 # Warning not even remotely close to being usable!
 
-Lots of hardcoded stuff still but it shows something...
+Not as much hardcoded anymore, but still not fit for much.
+Breaking api is more a rule than exception still...
 
 Usage:
 python main.py | lemonbar -p
+for icons:
+python main.py | lemonbar -p -f "Tamsyn-12" -f "FontAwesome-12"
 
 Design ideas:
 
@@ -38,4 +41,13 @@ and some object specific stuff like
     weather_site, weather_username, ...
     email_address, email_username, email_password
 
+functions to expand:
+bspwm
+pacman
+
+functions to add:
+weather
+cpu info (see if I can make a graph)
+disk info
+mem info
 
