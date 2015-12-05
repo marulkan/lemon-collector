@@ -48,7 +48,7 @@ def formating(obj, orientation='l', order=0):
     return [orientation, order, obj]
 
 def coloring(obj, fg_color):
-    ret = '%{F' + fg_color + '}' + obj + '%{F-}'
+    ret = '%{F#' + fg_color + '}' + obj + '%{F-}'
     return ret
 
 def display_bspwm(config, loop):
