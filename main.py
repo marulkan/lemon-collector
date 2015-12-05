@@ -76,7 +76,10 @@ def display_bspwm(config, loop):
     loop.call_later(1, display_bspwm, config, loop)
 
 def display_date(config, loop):
-    shown_objects['date'] = formating(config['string'] + ' ' + str(datetime.datetime.strftime(datetime.datetime.now(), config.get('parsing', raw=True))), config['alignment'], config['priority'])
+    title = coloring(config['title'], config['title_color'])
+    content = coloring(str(datetime.datetime.strftime(datetime.datetime.now(),
+                           config.get('parsing', raw=True))), config['fg_color'])
+    shown_objects['date'] = formating(title + ' ' + content, config['alignment'], config['priority'])
     loop.call_later(1, display_date, config, loop)
 
 def display_packages(config, loop):
@@ -84,7 +87,9 @@ def display_packages(config, loop):
     p2 = subprocess.Popen(["wc", "-l"], stdin=p1.stdout, stdout=subprocess.PIPE)
     p1.stdout.close()
     output = p2.communicate()[0]
-    shown_objects['packages'] = formating(config['string'] + ' ' + output.decode("utf-8").strip(), config['alignment'], config['priority'])
+    title = coloring(config['title'], config['title_color'])
+    content = coloring(output.decode("utf-8").strip(), config['fg_color'])
+    shown_objects['packages'] = formating(title + ' ' + content, config['alignment'], config['priority'])
     loop.call_later(120, display_packages, config, loop)
 
 def main():
