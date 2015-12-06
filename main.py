@@ -14,7 +14,7 @@ import configparser
 #                  date:['c', '0', 'data as a string']}
 shown_objects = {}
 
-def showing_objects(loop):
+def showing_objects(config, loop):
     current_objects = shown_objects.copy()
     left_objects = []
     center_objects = []
@@ -32,7 +32,10 @@ def showing_objects(loop):
     center_sorted = sorted(center_objects, key=lambda center_sorted: center_sorted[1])
     right_sorted = sorted(right_objects, key=lambda right_sorted: right_sorted[1])
     # Creating the strings...
-    left_items = '%{l}'
+    padding = ''
+    for i in range(0, int(config['side_padding'])):
+        padding += ' '
+    left_items = '%{l}' + padding
     for i in left_sorted:
         left_items += i[2]
     center_items = '%{c}'
@@ -41,8 +44,9 @@ def showing_objects(loop):
     right_items = '%{r}'
     for i in right_sorted:
         right_items += i[2]
+    right_items += padding
     print(left_items, center_items, right_items, flush=True)
-    loop.call_later(1, showing_objects, loop)
+    loop.call_later(1, showing_objects, config, loop)
 
 def formating(obj, orientation='l', order=0):
     return [orientation, order, obj]
@@ -110,7 +114,7 @@ def main():
         except KeyError:
             print(i, 'is not propperly mapped.')
 
-    loop.call_soon(showing_objects, loop)
+    loop.call_soon(showing_objects, config['lemonbar'], loop)
 
     # Blocking call interrupted by loop.stop()
     loop.run_forever()
