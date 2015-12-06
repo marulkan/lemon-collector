@@ -1,7 +1,7 @@
 import datetime
 import os
 import sys
-#import psutil
+import psutil
 import asyncio
 import subprocess
 import configparser
@@ -33,17 +33,28 @@ def showing_objects(config, loop):
     right_sorted = sorted(right_objects, key=lambda right_sorted: right_sorted[1])
     # Creating the strings...
     padding = ''
-    for i in range(0, int(config['side_padding'])):
-        padding += ' '
+    if config['side_padding_active'] == 'true':
+        for i in range(0, int(config['side_padding'])):
+            padding += ' '
+    separator = ''
+    if config['separator_active'] == 'true':
+        for i in range(0, int(config['separator_padding'])):
+            separator += ' '
+        separator += config['separator']
+        for i in range(0, int(config['separator_padding'])):
+            separator += ' '
     left_items = '%{l}' + padding
     for i in left_sorted:
-        left_items += i[2]
+        left_items += separator + i[2]
+    left_items += separator
     center_items = '%{c}'
     for i in center_sorted:
-        center_items += i[2]
+        center_items += separator + i[2]
+    center_items += separator
     right_items = '%{r}'
     for i in right_sorted:
-        right_items += i[2]
+        right_items += separator + i[2]
+    right_items += separator
     right_items += padding
     print(left_items, center_items, right_items, flush=True)
     loop.call_later(1, showing_objects, config, loop)
@@ -96,6 +107,12 @@ def display_packages(config, loop):
     shown_objects['packages'] = formating(title + ' ' + content, config['alignment'], config['priority'])
     loop.call_later(120, display_packages, config, loop)
 
+def display_cpu(config, loop):
+    title = coloring(config['title'], config['title_color'])
+    content = coloring(str(psutil.cpu_percent()), config['fg_color'])
+    shown_objects['cpu'] = formating(title + ' ' + content, config['alignment'], config['priority'])
+    loop.call_later(1, display_cpu, config, loop)
+
 def main():
     config = configparser.ConfigParser()
     config.read('lemon-collector.conf')
@@ -105,6 +122,7 @@ def main():
             'bspwm' : display_bspwm,
             'date'  : display_date,
             'pacman': display_packages,
+            'cpu'   : display_cpu,
     }
     # Figuring out which modules to load.
     enabledmod = config['general']['enabled_modules'].split()
