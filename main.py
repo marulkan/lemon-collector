@@ -1,7 +1,7 @@
 import datetime
 import os
 import sys
-import psutil
+#import psutil
 import asyncio
 import subprocess
 import configparser
@@ -67,7 +67,7 @@ def coloring(obj, fg_color):
     return ret
 
 def display_bspwm(config, loop):
-    bsp_event = subprocess.check_output(["bspc", "control", "--get-status"], universal_newlines=True).strip()
+    bsp_event = subprocess.check_output(["bspc", "wm", "-g"], universal_newlines=True).strip()
     bsp_events = bsp_event.split(':')
     # First part is not used for anything fun so lets remove it.
     bsp_events.pop(0)
